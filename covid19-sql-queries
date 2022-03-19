@@ -1,0 +1,93 @@
+##Looking at Total Cases v. Total Deaths
+##Liklihood of Dying in the United States
+SELECT
+    location, date, total_cases, total_deaths,(total_deaths/total_cases)*100 as death_percentage
+FROM   
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths`
+WHERE location like '%United States%'
+order by
+    1,2
+
+
+##Total Cases v. Population
+SELECT
+    location, date, population,total_cases, (total_cases/population)*100 as case_percentage
+FROM   
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths`
+WHERE location like '%United States%'
+order by
+    1,2
+ 
+ 
+ --Countries with Highest Infection Rate to Pop.
+SELECT
+    Location, population, MAX(total_cases) as highest_infection_count, max((total_cases/population))*100 as percent_population_infected
+FROM 
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths`
+WHERE continent is not null 
+GROUP BY 
+    location, population
+order by 
+    percent_population_infected desc
+
+
+--Showing Countries with the Highest Death Count per Population
+SELECT
+    location, MAX(cast(total_deaths as int)) as total_death_count
+FROM 
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths`
+WHERE continent is not null 
+GROUP BY 
+    location
+order by 
+    total_death_count desc
+
+
+--Break it down by continent
+SELECT
+    continent, MAX(cast(total_deaths as int)) as total_death_count
+FROM 
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths`
+WHERE continent is not null 
+GROUP BY 
+   continent
+order by 
+    total_death_count desc
+
+
+
+--Global Numbers
+SELECT
+    SUM(new_cases) as total_cases, sum(cast(new_deaths as int)) as total_deaths, sum(new_deaths)/sum(new_cases)*100 as  death_percentage
+FROM   
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths`
+WHERE continent is not null 
+--group by date
+order by
+    1,2
+
+
+
+--total population v. new vaccinations per day, part 1: creating a new table w/ query
+
+SELECT
+    dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+,sum(cast(vac.new_vaccinations as int)) OVER (PARTITION BY dea.location order by dea.location, dea.date) as rolling_vaccinations
+--(rolling_vaccinations, dea.population)*100
+from
+    `portfolioproject-344602.ProjectPortfolio.CovidDeaths` dea
+JOIN `portfolioproject-344602.ProjectPortfolio.CovidVaccinations` vac
+   on dea.location = vac.location
+   and dea.date = vac.date
+where dea.continent is not null 
+order by 2,3
+
+
+
+--total population v. new vaccinations per day, part 2: using new table to get result
+SELECT 
+    continent, location, date, population, new_vaccinations, rolling_vaccinations, (rolling_vaccinations/population)*100 as PopVsVac
+ FROM 
+    `portfolioproject-344602.ProjectPortfolio.CovidPopulation_vs_NewVaccinations`
+WHERE location is not null 
+order by 2,3
