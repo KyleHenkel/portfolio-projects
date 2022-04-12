@@ -91,3 +91,4 @@ SELECT
     `portfolioproject-344602.ProjectPortfolio.CovidPopulation_vs_NewVaccinations`
 WHERE location is not null 
 order by 2,3
+
